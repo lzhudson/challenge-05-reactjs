@@ -6,6 +6,8 @@ import Container from '../../components/Container';
 
 import api from '../../services/api';
 
+import { findRepository } from '../../utils/utils';
+
 export default class Main extends Component {
   constructor(props) {
     super(props);
@@ -42,6 +44,12 @@ export default class Main extends Component {
       this.setState({ loading: true });
 
       const { newRepo, repositories } = this.state;
+
+      const repositoryAlreadyExists = findRepository(repositories, newRepo);
+
+      if (repositoryAlreadyExists >= 0) {
+        throw new Error('Repositório duplicado');
+      }
 
       const response = await api.get(`/repos/${newRepo}`);
 
