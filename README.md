@@ -31,13 +31,13 @@ git clone https://github.com/lzhudson/challenge-05-reactjs.git
 **Install dependencies**
 
 ```
-yarn install
+yarn
 ```
 
 **Start development server**
 
 ```
-yarn dev
+yarn start
 ```
 # :postbox: Faq
 
