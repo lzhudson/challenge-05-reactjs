@@ -24,7 +24,11 @@ export const Loading = styled.div`
   align-items: center;
   height: 100vh;
 `;
-
+export const IssuesContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+`;
 export const Owner = styled.header`
   display: flex;
   align-items: center;

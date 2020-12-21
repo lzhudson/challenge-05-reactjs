@@ -5,7 +5,14 @@ import api from '../../services/api';
 
 import Container from '../../components/Container';
 
-import { Loading, Owner, IssueList, PaginationContainer } from './styles';
+import {
+  Loading,
+  Owner,
+  IssueList,
+  PaginationContainer,
+  IssuesContainer,
+} from './styles';
+import Badge from '../../components/Badge';
 
 export default class Repository extends Component {
   constructor(props) {
@@ -15,13 +22,14 @@ export default class Repository extends Component {
       issues: [],
       loading: true,
       page: 1,
+      stateIssues: 'open',
     };
   }
 
   async componentDidMount() {
     const { match } = this.props;
 
-    const { page } = this.state;
+    const { page, stateIssues } = this.state;
 
     const repoName = decodeURIComponent(match.params.repository);
 
@@ -29,7 +37,7 @@ export default class Repository extends Component {
       api.get(`/repos/${repoName}`),
       api.get(`/repos/${repoName}/issues?page=${page}`, {
         params: {
-          state: 'open',
+          state: stateIssues,
           per_page: 5,
         },
       }),
@@ -42,10 +50,14 @@ export default class Repository extends Component {
   }
 
   componentDidUpdate(_, prevState) {
-    const { page } = this.state;
+    const { page, stateIssues } = this.state;
 
     if (prevState.page !== page) {
       this.updateIssuesList(page);
+    }
+
+    if (prevState.stateIssues !== stateIssues) {
+      this.updateIssueType();
     }
   }
 
@@ -57,11 +69,11 @@ export default class Repository extends Component {
   };
 
   updateIssuesList = async (page) => {
-    const { repository } = this.state;
+    const { repository, stateIssues } = this.state;
     const response = await api.get(`/repos/${repository.full_name}/issues`, {
       params: {
         page,
-        state: 'open',
+        state: stateIssues,
         per_page: 5,
       },
     });
@@ -74,6 +86,26 @@ export default class Repository extends Component {
     const { page } = this.state;
     this.setState({
       page: page - 1,
+    });
+  };
+
+  handleChangeStateIssues = (stateIssue) => {
+    this.setState({
+      stateIssues: stateIssue,
+    });
+  };
+
+  updateIssueType = async () => {
+    const { repository, stateIssues, page } = this.state;
+    const response = await api.get(`/repos/${repository.full_name}/issues`, {
+      params: {
+        page,
+        state: stateIssues,
+        per_page: 5,
+      },
+    });
+    this.setState({
+      issues: response.data,
     });
   };
 
@@ -90,7 +122,23 @@ export default class Repository extends Component {
           <h1>{repository.name}</h1>
           <p>{repository.description}</p>
         </Owner>
-
+        <IssuesContainer>
+          <Badge
+            name="All"
+            stateIssue="all"
+            onClickStateIssue={this.handleChangeStateIssues}
+          />
+          <Badge
+            name="Open"
+            stateIssue="open"
+            onClickStateIssue={this.handleChangeStateIssues}
+          />
+          <Badge
+            name="Closed"
+            stateIssue="closed"
+            onClickStateIssue={this.handleChangeStateIssues}
+          />
+        </IssuesContainer>
         <IssueList>
           {issues.map((issue) => (
             <li key={String(issue.id)}>
