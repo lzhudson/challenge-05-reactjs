@@ -5,7 +5,7 @@ import api from '../../services/api';
 
 import Container from '../../components/Container';
 
-import { Loading, Owner, IssueList } from './styles';
+import { Loading, Owner, IssueList, PaginationContainer } from './styles';
 
 export default class Repository extends Component {
   constructor(props) {
@@ -14,17 +14,20 @@ export default class Repository extends Component {
       repository: {},
       issues: [],
       loading: true,
+      page: 1,
     };
   }
 
   async componentDidMount() {
     const { match } = this.props;
 
+    const { page } = this.state;
+
     const repoName = decodeURIComponent(match.params.repository);
 
     const [repository, issues] = await Promise.all([
       api.get(`/repos/${repoName}`),
-      api.get(`/repos/${repoName}/issues`, {
+      api.get(`/repos/${repoName}/issues?page=${page}`, {
         params: {
           state: 'open',
           per_page: 5,
@@ -38,9 +41,44 @@ export default class Repository extends Component {
     });
   }
 
+  componentDidUpdate(_, prevState) {
+    const { page } = this.state;
+
+    if (prevState.page !== page) {
+      this.updateIssuesList(page);
+    }
+  }
+
+  handleNextPage = async () => {
+    const { page } = this.state;
+    this.setState({
+      page: page + 1,
+    });
+  };
+
+  updateIssuesList = async (page) => {
+    const { repository } = this.state;
+    const response = await api.get(`/repos/${repository.full_name}/issues`, {
+      params: {
+        page,
+        state: 'open',
+        per_page: 5,
+      },
+    });
+    this.setState({
+      issues: response.data,
+    });
+  };
+
+  handlePreviousPage = async () => {
+    const { page } = this.state;
+    this.setState({
+      page: page - 1,
+    });
+  };
+
   render() {
-    const { repository, issues, loading } = this.state;
-    console.log(issues);
+    const { repository, issues, loading, page } = this.state;
     if (loading) {
       return <Loading>Carregando</Loading>;
     }
@@ -69,6 +107,16 @@ export default class Repository extends Component {
             </li>
           ))}
         </IssueList>
+        <PaginationContainer>
+          {page > 1 && (
+            <button type="button" onClick={this.handlePreviousPage}>
+              Issues Anteriores
+            </button>
+          )}
+          <button type="button" onClick={this.handleNextPage}>
+            Proximas Issues
+          </button>
+        </PaginationContainer>
       </Container>
     );
   }

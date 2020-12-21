@@ -1,5 +1,20 @@
 import styled from 'styled-components';
 
+export const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+
+  button {
+    background: #7159c1;
+    border: none;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-weight: 700;
+  }
+`;
+
 export const Loading = styled.div`
   color: #fff;
   font-size: 30px;
